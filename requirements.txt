@@ -1,0 +1,5 @@
+streamlit==1.17.0
+geopandas==0.12.2
+matplotlib==3.6.3
+pydeck==0.8.0
+flake8==6.0.0
