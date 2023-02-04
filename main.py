@@ -9,9 +9,9 @@ from pyproj import Transformer
 import math
 
 
-#@st.experimental_memo
+@st.experimental_memo
 def load_gdf(path: str) -> pd.DataFrame:
-    return gpd.read_file(path, encoding="shift-jis", rows=100)
+    return gpd.read_file(path, encoding="shift-jis")
 
 
 # https://stackoverflow.com/questions/62053253/how-to-split-a-linestring-to-segments
@@ -45,6 +45,10 @@ def calc_color(p: tuple[tuple[float, float], tuple[float, float]]) -> tuple[int,
     diff = abs(105 - deg)
     if diff > 90:
         diff = 180 - diff
+    if diff < 10:
+        return (255, 0, 0)
+    else:
+        return (255, 255, 255)
     #d = diff / 90
     r = 255 / (1 + math.exp(0.9 * (45 - diff)))
     #st.write(r, diff)
@@ -109,8 +113,7 @@ layer = pydeck.Layer(
     get_width=5,
 )
 
-st.pydeck_chart(
-    pydeck.Deck(
+deck = pydeck.Deck(
         layers=(layer, ),
         initial_view_state=pydeck.ViewState(
             latitude=43.08,
@@ -118,4 +121,7 @@ st.pydeck_chart(
             zoom=10.0,
             max_zoom=16,
             pitch=0,
-            bearing=0)))
+            bearing=0),
+        tooltip={"text": "{路線名}"})
+st.pydeck_chart(deck)
+deck.to_html("path_layer.html")
