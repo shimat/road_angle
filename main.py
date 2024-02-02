@@ -1,15 +1,15 @@
+import math
 import geopandas as gpd
-from matplotlib.axes import Axes
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from shapely.geometry import Polygon, mapping, LineString
 import pydeck
+from matplotlib.axes import Axes
 from pyproj import Transformer
-import math
+from shapely.geometry import Polygon, mapping, LineString
 
 
-@st.experimental_memo
+@st.cache_data
 def load_gdf(path: str) -> pd.DataFrame:
     return gpd.read_file(path, encoding="shift-jis")
 
@@ -33,22 +33,24 @@ def angle(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     return deg
 
 
-p1 = (0, 0)
-p2 = (1, 1)
-st.write(angle(p1, p2))
+# p1 = (0, 0)
+# p2 = (1, 1)
+# st.write(angle(p1, p2))
 
 
 def calc_color(p: tuple[tuple[float, float], tuple[float, float]]) -> tuple[int, int, int]:
+    TARGET_ANGLE = 15
+
     deg = angle(*p)
     if deg < 0:
         deg += 180
-    diff = abs(105 - deg)
+    diff = abs(TARGET_ANGLE - deg)
     if diff > 90:
         diff = 180 - diff
     if diff < 10:
         return (255, 0, 0)
     else:
-        return (255, 255, 255)
+        return (128, 128, 128)
     #d = diff / 90
     r = 255 / (1 + math.exp(0.9 * (45 - diff)))
     #st.write(r, diff)
@@ -56,10 +58,12 @@ def calc_color(p: tuple[tuple[float, float], tuple[float, float]]) -> tuple[int,
     return (255, r, r)
 
 
-st.title("Road")
+st.set_page_config(page_title="Road Angle", layout="wide")
+st.title("Road Angle")
 
 # gdf = gpd.read_file("data/N01-07L-01-01.0a_GML/N01-07L-2K-01_Road.shp")
 gdf = load_gdf("data/sapporoauthorizedroad202111/路線区間オープンデータ.shp")
+# gdf = gdf[:1000]
 
 transformer = Transformer.from_proj(2454, 4326)
 gdf["segment_lonlat"] = gdf["geometry"].apply(
@@ -85,23 +89,6 @@ DATA_URL = {
     "FLIGHT_PATHS": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/line/heathrow-flights.json",  # noqa
 }
 
-
-"""
-line_layer = pydeck.Layer(
-    "LineLayer",
-    df,
-    get_source_position="lat",
-    get_target_position="lon",
-    get_color=GET_COLOR_JS,
-    get_width=10,
-    highlight_color=[255, 255, 0],
-    picking_radius=10,
-    auto_highlight=True,
-    pickable=True,
-)
-"""
-
-
 layer = pydeck.Layer(
     type="PathLayer",
     data=gdf2,
@@ -114,14 +101,16 @@ layer = pydeck.Layer(
 )
 
 deck = pydeck.Deck(
-        layers=(layer, ),
-        initial_view_state=pydeck.ViewState(
-            latitude=43.08,
-            longitude=141.35,
-            zoom=10.0,
-            max_zoom=16,
-            pitch=0,
-            bearing=0),
-        tooltip={"text": "{路線名}"})
+    layers=(layer, ),
+    initial_view_state=pydeck.ViewState(
+        latitude=43.08,
+        longitude=141.35,
+        zoom=10.0,
+        max_zoom=16,
+        pitch=0,
+        bearing=0,
+        height=800, 
+        width=1200),
+    tooltip={"text": "{路線名}"})
 st.pydeck_chart(deck)
 deck.to_html("path_layer.html")
