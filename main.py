@@ -84,11 +84,6 @@ gdf2
 #    a.plot(*gdf.iloc[i]["geometry"].xy)
 #st.pyplot(f)
 
-DATA_URL = {
-    "AIRPORTS": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/line/airports.json",
-    "FLIGHT_PATHS": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/line/heathrow-flights.json",  # noqa
-}
-
 layer = pydeck.Layer(
     type="PathLayer",
     data=gdf2,
